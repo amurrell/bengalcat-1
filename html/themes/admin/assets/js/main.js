@@ -2,9 +2,15 @@ window.app = {
     init: function () {
         var _this = this;
 
+        this.config();
         this.getPluginsData();
         this.loadNextPlugin();
 
+    },
+    config: function() {
+        $.ajaxSetup({
+            cache: true
+        });  
     },
     initPlugins: function () {
         var _this = this;
@@ -152,4 +158,3 @@ window.app = {
 $(document).ready(function () {
     app.init();
 });
-
