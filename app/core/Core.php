@@ -110,12 +110,10 @@ class Core {
 
         return $this;
     }
-
-    protected function findRoute()
+    
+    public function findMatchingRoute($routes, $route)
     {
-        $this->routes = include_once APP_DIR . 'config/routes.php';
-
-        if (empty($this->routes)) {
+        if (empty($routes)) {
             $this->util->triggerError(
                 $this,
                 $this->getSetting('errorRoute'),
@@ -126,29 +124,48 @@ class Core {
                 ]
             );
         }
-
+        
+        $routes = (array) $routes;
+        
         // Use regex to match non-exact routes
-        if (!isset($this->routes[$this->route])) {
-
-            foreach ($this->routes as $configuredRoute => $configuredClass) {
+        if (!isset($routes[$route])) {
+            
+            foreach ($routes as $configuredRoute => $configuredClass) {
                 $matches = array();
-                if (preg_match('#^'. $configuredRoute . '$#', $this->route, $matches)) {
-                    $this->routeVariant = $matches[1];
-                    $this->routeVariants = $matches;
-                    $this->routeExtenderPath = $configuredClass;
+                if (preg_match('#^'. $configuredRoute . '$#', $route, $matches)) {
+                    $variant = $matches[1];
+                    $variants = $matches;
+                    $routeExtenderPath = $configuredClass;
                     break;
                 }
             }
+            
         }
-
-        $this->routePieces = $this->util->getRoutePieces($this->route);
+        
+        $routePieces = $this->util->getRoutePieces($route);
         
         // Matches exact routes
-        if (isset($this->routes[$this->route])) {
-            $this->routeExtenderPath = $this->routes[$this->route];
+        if (isset($routes[$route])) {
+            $routeExtenderPath = $routes[$route];
         }
         
-        if (empty($this->routeExtenderPath)) {
+        return (object) [
+            'variant'           => isset($variant) ? $variant : null,
+            'variants'          => isset($variants) ? $variants : null,
+            'routeExtenderPath' => $routeExtenderPath,
+            'routePieces'       => $routePieces,
+            'routeExtender'     => $this->util->getClassName(
+                    $routeExtenderPath)
+        ];
+    }
+
+    protected function findRoute()
+    {
+        $routes = include_once APP_DIR . 'config/routes.php';
+        
+        $routeData = $this->findMatchingRoute($routes, $this->route);
+        
+        if (empty($routeData->routeExtenderPath)) {
             $this->util->triggerError(
                 $this,
                 $this->getSetting('errorRoute'),
@@ -160,7 +177,11 @@ class Core {
             );
         }
         else {
-            $this->routeExtender = $this->util->getClassName($this->routeExtenderPath);
+            $this->routeExtender = $routeData->routeExtender;
+            $this->routeExtenderPath = $routeData->routeExtenderPath;
+            $this->routePieces = $routeData->routePieces;
+            $this->routeVariant = $routeData->variant;
+            $this->routeVariants = $routeData->variants;
         }
 
         return $this;
@@ -330,6 +351,13 @@ class Core {
     public function getSettings()
     {
         return $this->settings;
+    }
+    
+    public function changeSetting($prop, $value)
+    {
+        if (isset($this->settings->$prop)) {
+            $this->settings->$prop = $value;
+        }
     }
 
     public function getSetting($prop, $default = null)

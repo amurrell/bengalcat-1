@@ -9,5 +9,12 @@ return [
         'name' => 'example_data',
         'host' => 'mysql',
         'port' => '3306'
+    ],
+    'bc_no_db' => [
+        'user' => 'root',
+        'pass' => '1234',
+        'name' => '',
+        'host' => 'mysql',
+        'port' => '3306'
     ]
 ];

@@ -16,11 +16,11 @@ return [
     'navActiveClass'       => 'bc-active',
     'navItems'             => [
         'docs'     => [
-            'attributes'      => [
+            'attributes'        => [
                 'href' => '/docs/',
             ],
 //            'fontawesomeIcon' => 'copy',
-            'display'         => 'Docs',
+            'display'           => 'Docs',
             'matchingRoutePath' => '/docs/'
         ],
         'about'    => [
@@ -39,21 +39,36 @@ return [
             'display'         => 'Download',
         ],
     ],
-    'cms' => [
-        'displays' => [
+    'cms'                  => [
+        'appName'          => 'cms',
+        'displayName'      => 'CMS',
+        'errorPortalRoute' => '\Bc\App\Core\Apps\Cms\Portal\CmsPortalError',
+        'apiPath'          => '/api/cms/',
+        'apiRouteTemplate' => 'Bc\App\Core\Apps\Cms\Api\%s\CmsApi%s%s',
+        'theme'            => 'admin',
+        'displays'         => [
             'docs' => ['controller' => '\Bc\App\Controllers\Example\View\Docs'],
-            'doc' => ['controller' => '\Bc\App\Controllers\Example\View\Doc'],
+            'doc'  => ['controller' => '\Bc\App\Controllers\Example\View\Doc'],
+        ],
+        'portalRoutes'     => [
+            '/portal/cms/' => '\Bc\App\Core\Apps\Cms\Portal\CmsPortalRouteTypes',
+        ],
+        'gatedRoutes'      => [
+            '/portal/cms/',
         ]
     ],
-    'admin' => [
-        'theme' => 'admin',
-        'apps' => [
-            'auth' => [
-                'controller' => '\Bc\App\Core\Auth\Admin\AuthAdmin',
-            ],
-            'cms' => [
-                'controller' => '\Bc\App\Core\Cms\Admin\CmsAdmin',
-            ]
+    'admin'                => [
+        'appName'          => 'admin',
+        'displayName'      => 'Admin',
+        'errorPortalRoute' => '\Bc\App\Core\Apps\Admin\Portal\AdminPortalError',
+        'apiPath'          => '/api/admin/',
+        'apiRouteTemplate' => 'Bc\App\Core\Apps\Admin\Api\%s\AdminApi%s%s',
+        'theme'            => 'admin',
+        'portalRoutes'     => [
+            '/admin/'       => '\Bc\App\Core\Apps\Admin\Portal\AdminPortalApps',
+        ],
+        'gatedRoutes'      => [
+            '/admin/(.*)',
         ]
     ]
 ];
