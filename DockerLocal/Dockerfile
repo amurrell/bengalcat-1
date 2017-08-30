@@ -22,7 +22,7 @@ RUN	apt-get update && \
 	apt-get -y install libcurl3-openssl-dev && \
 	apt-get -y install libyaml-dev && \
 	apt-get -y install php7.0-zip && \
-        apt-get -y install memcached && \
+#        apt-get -y install memcached && \
         apt-get -y install php-memcached
 
 RUN pear config-set php_ini /etc/php/7.0/fpm/php.ini
@@ -62,6 +62,9 @@ RUN rm /etc/php/7.0/fpm/pool.d/www.conf
 
 # Adjust www-data
 RUN usermod -u 1000 www-data
+
+# Start memcached?
+#RUN service memcached start
 
 # Set the default command to execute when creating a new container
 # The following runs FPM and removes all its extraneous log output on top of what your app outputs to stdout

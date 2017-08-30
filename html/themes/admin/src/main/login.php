@@ -1,6 +1,6 @@
 <div class="full-width-hero">
     <div class="hero-text">
-        <form action="/admin/login/" method="post" class="form-login">
+        <form action="/admin/" method="post" class="form-login">
             
             <label>
                 User Handle
@@ -15,6 +15,9 @@
             <button type="submit" name="admin-login">
                 Let me in.
             </button>
+            
+            <input type="hidden" name="handle_key" value="username"/>
+            <input type="hidden" name="password_key" value="password"/>
         </form>
     </div>
 </div>

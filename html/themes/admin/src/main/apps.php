@@ -1,10 +1,10 @@
 <div class="full-width-hero">
     <div class="hero-text text-center">
         <div>
-            Uh oh!
+            Wooooo!
         </div>
         <div>
-            <?= $data['status']; ?>
+            Made it into the dashboard, where we are lookin' at apps.
         </div>
     </div>
 </div>

@@ -5,11 +5,15 @@ return [
     /* Custom View Controllers */
     '/' => '\Bc\App\Controllers\Example\View\Installed',
     
-    /* Admin - ie cms, users, custom */
-    '/(admin)/(.*)' => '\Bc\App\Core\Admin\AdminIndex',
+    /* Apps (and their APIs) */
     
-    /* CMS */
-    '/api/cms/[^/]*/route(/.*)' => '\Bc\App\Core\Cms\CmsIndex',
-    '(/.*)' => '\Bc\App\Core\Cms\CmsIndex',
+        // Admin
+        '/api/admin/[^/]*/route(/.*)' => '\Bc\App\Core\Apps\Admin\AdminIndex',
+        '/admin/(.*)' => '\Bc\App\Core\Apps\Admin\AdminIndex',
+
+        // CMS
+        '/api/cms/[^/]*/route(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
+        '/portal/cms/(.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
+        '(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex', // catch all, put this last
     
 ];

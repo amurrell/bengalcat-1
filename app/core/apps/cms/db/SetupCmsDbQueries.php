@@ -1,6 +1,6 @@
 <?php
 
-namespace Bc\App\Core\Cms\Db;
+namespace Bc\App\Core\Apps\Cms\Db;
 
 use Bc\App\Core\DbExtender;
 

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "format is: ./docker-ssh [service] [project]"
+
+elif [ "$1" ] && [ -z "$2" ]; then
+    sudo docker exec -t -i dockerlocal_"$1"_1 /bin/bash
+
+elif [ "$1" ] && [ "$2" ]; then 
+    sudo docker exec -t -i "$2"_"$1"_1 /bin/bash
+fi

@@ -1,13 +1,14 @@
 web:
     build: .
     ports:
-        - "8080:8080"
+        - "${WEB_PORT}:8080"
     volumes:
         - ../:/var/www/site
     links:
         - mysql
+        - memcached
     expose:
-        - "8080"
+        - "${WEB_PORT}"
 
 mysql:
     image: mysql
@@ -18,3 +19,8 @@ mysql:
     volumes:
         - ./data/dumps:/docker-entrypoint-initdb.d
         - ./data/custom:/etc/mysql/conf.d
+        
+memcached:
+  image: memcached
+  ports:
+    - "11211:11211"

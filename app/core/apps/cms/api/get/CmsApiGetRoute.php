@@ -1,6 +1,6 @@
 <?php
 
-namespace Bc\App\Core\Cms\Api\Get;
+namespace Bc\App\Core\Apps\Cms\Api\Get;
 
 use Bc\App\Core\RouteExtenders\CrudRouteExtender;
 use Bc\App\Core\Util;

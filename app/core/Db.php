@@ -47,7 +47,7 @@ class Db {
     protected function openConn()
     {
         $dbString = "mysql:host={$this->host};port={$this->port};"
-        . "dbname={$this->dbname};"
+        . (!empty($this->dbname) ? "dbname={$this->dbname};" : '')
         . "charset={$this->charset}";
 
         try {
@@ -122,6 +122,26 @@ class Db {
             $params = array()
         ) {
         $this->querySelect($string, $params, null, null);
+    }
+    
+    public function queryExec($string)
+    {
+       try {
+           $this->db->exec($string);
+       } catch (Exception $ex) {
+           
+            if ($this->db->inTransaction()) {
+                $this->rollBack();
+                $this->closeConn();
+            }
+
+            Util::triggerError(array(
+                'success'    => false,
+                'error_code' => ( (int) ($err = $ex->getCode()) ) == 0 ? 500 : $err,
+                'message'    => $ex->getMessage(),
+                'query'      => $string
+            ));
+       }
     }
 
     protected function bindParamsByType(&$q, &$params)
