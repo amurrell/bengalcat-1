@@ -111,9 +111,11 @@ class Util {
      * @param string $url The url to call with curl
      * @param array $params The postfields to send
      * @param bool $get If using get as the method, default false
+     * @param bool $json If using json content type header
+     * @param array $headers Addition key value array of headers to add. eg "'Authorization' => 'value'"
      * @return mixed The response from the curl call
      */
-    static public function makeCurlCall($url, $params = array(), $get = false, $json = false) {
+    static public function makeCurlCall($url, $params = [], $get = false, $json = false, $headers = []) {
         // create a new cURL resource
         $ch = curl_init();
 
@@ -121,8 +123,18 @@ class Util {
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
+
         if ($json) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+            $headers['Content-Type'] = 'application/json';
+        }
+
+        if (!empty($headers) && is_array($headers)) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array_map(
+                function($name, $value) {
+                    return "$name:$value";
+                },
+                array_keys($headers), $headers)
+            );
         }
 
         // Check for params
@@ -213,52 +225,52 @@ class Util {
             509 => 'Bandwidth Limit Exceeded',
             510 => 'Not Extended'
         ];
-        
-        return isset($statusCodes[$code]) 
+
+        return isset($statusCodes[$code])
             ? $code . ' ' . $statusCodes[$code]
             : $code . ' ' . $status;
     }
-    
+
     static public function triggerError(
         Core $bc,
         $errorRoute = 'ErrorDefault',
         $returnData = []
     ) {
-        
+
         $attemptedPath = $_SERVER['REQUEST_URI'];
-        
+
         $identifiers = $bc->getSetting('errorJsonIdentifiers', []);
         $identifiersMatch = preg_match(
             '#'. implode( '|', array_map('preg_quote', $identifiers) ) . '#',
             $attemptedPath
         );
-        
-        $useJson = $identifiersMatch; 
-        
+
+        $useJson = $identifiersMatch;
+
         $code = (int) $returnData['error_code'];
         $status = isset($returnData['status']) ? $returnData['status'] : null;
         $statusString = self::getHttpStatusHeaderByCode($code, $status );
-        
+
         self::errorLog($returnData, $code, $returnData['message']);
-        
+
         // Send Header
         header($_SERVER["SERVER_PROTOCOL"]." {$statusString}", true, $code);
-        
+
         // Display only JSON
         if ($useJson) {
             header('Content-Type: application/json');
             echo json_encode($returnData);
             exit();
         }
-        
+
         // Use Error Route (view)
         $bc->setRouteExtender($errorRoute, true);
-        
+
         new $errorRoute(
-            $bc, 
+            $bc,
             array_merge($returnData, ['status' => $statusString])
         );
-        
+
         exit();
     }
 
@@ -330,7 +342,7 @@ class Util {
     static public function getAsset($path, $fileName) {
         $path = $path . $fileName;
         $relative = str_replace(INDEX_DIR, '/', $path);
-        
+
         if (!file_exists($path)) {
             self::errorLog([
                 'path' => $path,
@@ -338,7 +350,7 @@ class Util {
             ], 409, 'File does not exist.');
             return '';
         }
-        
+
         return $relative;
     }
 
@@ -505,22 +517,22 @@ class Util {
 
         return $arr;
     }
-    
+
     static public function objectifyAssocArray($arr, $recursive = false)
     {
         if (!is_array($arr)) {
             return $arr;
         }
-        
+
         if ($recursive) {
             $arr = array_map(function($item) use ($recursive) {
                 return self::objectifyAssocArray($item, $recursive);
             }, $arr);
         }
-        
+
         return (!is_int(key($arr))) ? (object) $arr : $arr;
     }
-    
+
     static public function errorLog(
         $data,
         $errorCode = 500,
@@ -533,7 +545,7 @@ class Util {
             'data' => $data
         ]));
     }
-    
+
     static public function debugLog(
         $data,
         $debugMessage = 'No debug message specified.'
@@ -545,7 +557,7 @@ class Util {
             'data' => $data
         ]));
     }
-    
+
     static public function getRoutePieces($route)
     {
         $variants = explode('/', $route);

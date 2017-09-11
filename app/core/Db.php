@@ -14,6 +14,7 @@ use PDOException;
 
 class Db {
 
+    private $bc;
     private $db;
     private $dbname;
     private $user;
@@ -26,6 +27,7 @@ class Db {
      * Do not store DB info in the code / version control!
      */
     public function __construct(
+            $bc,
             $dbname,
             $user,
             $password,
@@ -34,6 +36,7 @@ class Db {
             $charset = 'utf8mb4'
         ) {
 
+        $this->bc = $bc;
         $this->dbname = $dbname;
         $this->user = $user;
         $this->password = $password;
@@ -42,6 +45,25 @@ class Db {
         $this->charset = $charset;
 
         return $this;
+    }
+
+    protected function triggerError(
+        $errorCode = 500,
+        $message   = 'Could not connect to the database.',
+        $query     = '',
+        $params = []
+    ) {
+        Util::triggerError(
+            $this->bc,
+            $this->bc->getSetting('errorRoute'),
+            [
+                'success'    => false,
+                'error_code' => $errorCode,
+                'message'    => $message,
+                'query'      => $query,
+                'params'     => $params
+            ]
+        );
     }
 
     protected function openConn()
@@ -54,13 +76,9 @@ class Db {
             $this->db = new PDO($dbString, "{$this->user}", "{$this->password}");
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            Util::triggerError(
-                array(
-                    'success' => false,
-                    'error_code' => 500,
-                    'message' => 'Check Database Permissions or SQL logs.'
-                )
-            );
+            $errorCode = ( (int) ($err = $e->getCode()) ) == 0 ? 500 : $err;
+            $message   = 'Check Database Permissions or SQL logs: ' . $e->getMessage();
+            $this->triggerError($errorCode, $message);
         }
 
         return $this;
@@ -123,25 +141,27 @@ class Db {
         ) {
         $this->querySelect($string, $params, null, null);
     }
-    
+
     public function queryExec($string)
     {
-       try {
-           $this->db->exec($string);
-       } catch (Exception $ex) {
-           
+        if (!isset($this->db)) {
+            $this->openConn();
+        }
+
+        try {
+            $this->db->exec($string);
+        } catch (Exception $ex) {
+
             if ($this->db->inTransaction()) {
                 $this->rollBack();
                 $this->closeConn();
             }
 
-            Util::triggerError(array(
-                'success'    => false,
-                'error_code' => ( (int) ($err = $ex->getCode()) ) == 0 ? 500 : $err,
-                'message'    => $ex->getMessage(),
-                'query'      => $string
-            ));
-       }
+            $errorCode = ( (int) ($err = $ex->getCode()) ) == 0 ? 500 : $err;
+            $message   = $ex->getMessage();
+            $query     = $string;
+            $this->triggerError($errorCode, $message, $query);
+        }
     }
 
     protected function bindParamsByType(&$q, &$params)
@@ -185,6 +205,22 @@ class Db {
         }
     }
 
+    /*
+     * This is necessary because
+     * if you have any params that are not used in the query, PDO gets mad.
+     */
+    protected function removeUnusedParams($string, $params)
+    {
+        $usedParams = [];
+        foreach($params as $key => $value) {
+
+            if (preg_match("#\s$key\s#", $string)) {
+                $usedParams[$key] = $value;
+            }
+        }
+        return $usedParams;
+    }
+
     public function querySelect(
             $string,
             $params = array(),
@@ -204,6 +240,7 @@ class Db {
             }
             else {
                 $q = $this->db->prepare($string);
+                $this->removeUnusedParams($string, $params);
                 $this->handleParamsAndExecute($q, $params);
             }
 
@@ -234,13 +271,8 @@ class Db {
                 $this->closeConn();
             }
 
-            Util::triggerError(array(
-               'success' => false,
-               'error_code' => ( (int) ($err = $e->getCode()) ) == 0 ? 500 : $err,
-               'message' => $e->getMessage(),
-               'query' => $string,
-               'params' => $params
-            ));
+            $errorCode = ( (int) ($err = $e->getCode()) ) == 0 ? 500 : $err;
+            $this->triggerError($errorCode, $e->getMessage(), $string, $params);
         }
     }
 }

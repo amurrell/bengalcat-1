@@ -6,19 +6,37 @@ abstract class DbExtender {
 
     protected $connections;
     protected $db;
+    protected $bc;
 
-    public function __construct($dbName) 
+    public function __construct($dbName, Core $bc)
     {
         $this->connections = include APP_DIR . 'config/connections.php';
+        $this->bc = $bc;
 
         $db = $this->getDbConnectionData($dbName);
 
         $this->db = new Db(
-            !empty($db->name) ? $db->name : $dbName,
+            $this->bc,
+            !empty($db->name) ? $db->name : '', // allow no database
             $db->user,
             $db->pass,
             $db->host,
             !empty($db->port) ? $db->port : '3306'
+        );
+    }
+
+    protected function triggerError(
+        $errorCode = 500,
+        $message = 'Database does not seem to exist.'
+    ) {
+        Util::triggerError(
+            $this->bc,
+            $this->bc->getSetting('errorRoute'),
+            [
+                'success' => false,
+                'error_code' => $errorCode,
+                'message' => $message
+            ]
         );
     }
 
@@ -29,12 +47,8 @@ abstract class DbExtender {
             : [];
 
         if (empty($db)) {
-            Util::triggerError(
-                array(
-                    'success' => false,
-                    'error_code' => 501,
-                    'message' => 'This route has not been fully implemented. Check Database Connection Exists.'
-                )
+            $this->triggerError(501,
+                'This route has not been fully implemented. Check Database Connection Exists.'
             );
         }
 

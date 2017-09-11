@@ -21,20 +21,20 @@ abstract class ExampleRouteExtender extends DataRouteExtender {
     protected $defaultTheme = 'bengalcat';
 
     protected function setTemplatePaths() {
-        
+
         if (!defined('CSS_DIR')) {
             define('CSS_DIR', $this->getThemePart('assets/build/css/'));
             define('JS_DIR', $this->getThemePart('assets/build/js/'));
             define('IMAGE_DIR', $this->getThemePart('assets/build/img/'));
         }
-        
+
         parent::setTemplatePaths();
     }
-    
+
     protected function loadServices()
     {
         parent::loadServices();
-        
+
         $this->validateService = new ValidateExampleService($this);
         $this->formatService = new FormatExampleService($this);
 
@@ -44,7 +44,7 @@ abstract class ExampleRouteExtender extends DataRouteExtender {
     {
         parent::loadQueries();
 
-        $this->articleQueries = new ArticleDbQueries($this->dbName);
+        $this->articleQueries = new ArticleDbQueries($this->dbName, $this->bc);
 
         /* @help the same connection for other queries if you have them */
         $db = $this->articleQueries->getDb();
@@ -57,6 +57,6 @@ abstract class ExampleRouteExtender extends DataRouteExtender {
 
         /* @help Do other things, maybe setup a property from settings: */
         //$this->adminEmail = $this->bc->getSetting('adminEmail', 'example@example.com');
-        
+
     }
 }

@@ -18,7 +18,7 @@ class ValidateService {
     protected $formData;
     protected $route;
 
-    public function _construct($route)
+    public function __construct($route)
     {
         $this->route = $route; // can only use public methods/props
         return $this;
@@ -27,7 +27,7 @@ class ValidateService {
     public function validateForm($formData, $form)
     {
         $this->formData = $formData;
-        return $this->{'validate' . $form}();
+        return $this->{'validate' . $form . 'Form'}();
     }
 
     protected function success()

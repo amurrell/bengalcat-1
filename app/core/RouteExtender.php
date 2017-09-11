@@ -53,7 +53,7 @@ abstract class RouteExtender {
 
         return $this;
     }
-    
+
     protected function setTemplatePaths()
     {
         $this->setHeader($this->getThemePart('/src/templates/header.php'))
@@ -127,11 +127,11 @@ abstract class RouteExtender {
         // Get default Tokens
         $tokenDefaults = (file_exists(APP_DIR . 'config/tokenDefaults.php')) ?
                 (include APP_DIR . 'config/tokenDefaults.php') : array();
-        
+
         // Get Token Overrides
         $tokenOverrides = (file_exists(APP_DIR . 'config/tokens.php')) ?
                 (include APP_DIR . 'config/tokens.php') : array();
-        
+
         $tokens = array_merge($tokenDefaults, $tokenOverrides);
 
         // Find default replacements if needed, and there are default tokens.
@@ -202,7 +202,7 @@ abstract class RouteExtender {
 
         return ($matched === true) ? null : $matched;
     }
-    
+
     public function buildRouteVars($matchVars = [])
     {
         $urlVars = !empty($matchVars) ? $matchVars : $this->matchVars;
@@ -243,26 +243,26 @@ abstract class RouteExtender {
         $this->footer = $footer;
         return $this;
     }
-    
+
     public function getThemePart($part)
     {
         return $this->bc->getThemePath($this->getTheme(), $part);
     }
-    
-    public function getTheme() 
+
+    public function getTheme()
     {
         return !empty($this->theme)
             ?  $this->theme
             :  $this->bc->getDefaultTheme();
     }
-    
+
     public function setTheme($theme)
     {
         $this->theme = !$this->bc->themeExists($theme)
                 ? $this->bc->getDefaultTheme()
                 : $theme;
     }
-    
+
     public function getThemePartContents($partPath, $data = [])
     {
         return Util::getTemplateContents(
@@ -271,10 +271,11 @@ abstract class RouteExtender {
             $data
         );
     }
-    
+
     public function triggerError(
         $code = 404,
-        $message = 'There are no defined routes.'
+        $message = 'There are no defined routes.',
+        $data = []
     ) {
         Util::triggerError(
             $this->bc,
@@ -282,7 +283,8 @@ abstract class RouteExtender {
             [
                 'success' => false,
                 'error_code' => $code,
-                'message' => $message
+                'message' => $message,
+                'data' => $data
             ]
         );
     }

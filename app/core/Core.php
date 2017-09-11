@@ -30,15 +30,15 @@ class Core {
     public function __construct($dir)
     {
         $this->dir = $dir;
-        
+
         $this->defaultTheme = $this->getSetting('defaultTheme', 'bengalcat');
 
         define('INDEX_DIR', $dir . '/');
         define('CONTROLLERS_DIR', $dir . '/controllers/');
         define('THEMES_DIR', $dir . '/themes/');
-        
+
         $this->themes = $this->getThemes();
-        
+
         $this->loadUtil()
              ->loadSettings()
              ->parseUrl()
@@ -68,9 +68,9 @@ class Core {
         }
 
         $merged = array_merge($defaultSettings, $settings);
-        
+
         $this->settings = Util::objectifyAssocArray($merged, true);
-        
+
         return $this;
     }
 
@@ -110,7 +110,7 @@ class Core {
 
         return $this;
     }
-    
+
     public function findMatchingRoute($routes, $route)
     {
         if (empty($routes)) {
@@ -124,12 +124,12 @@ class Core {
                 ]
             );
         }
-        
+
         $routes = (array) $routes;
-        
+
         // Use regex to match non-exact routes
         if (!isset($routes[$route])) {
-            
+
             foreach ($routes as $configuredRoute => $configuredClass) {
                 $matches = array();
                 if (preg_match('#^'. $configuredRoute . '$#', $route, $matches)) {
@@ -139,16 +139,16 @@ class Core {
                     break;
                 }
             }
-            
+
         }
-        
+
         $routePieces = $this->util->getRoutePieces($route);
-        
+
         // Matches exact routes
         if (isset($routes[$route])) {
             $routeExtenderPath = $routes[$route];
         }
-        
+
         return (object) [
             'variant'           => isset($variant) ? $variant : null,
             'variants'          => isset($variants) ? $variants : null,
@@ -162,9 +162,9 @@ class Core {
     protected function findRoute()
     {
         $routes = include_once APP_DIR . 'config/routes.php';
-        
+
         $routeData = $this->findMatchingRoute($routes, $this->route);
-        
+
         if (empty($routeData->routeExtenderPath)) {
             $this->util->triggerError(
                 $this,
@@ -193,7 +193,7 @@ class Core {
             if (!class_exists($this->routeExtenderPath)) {
                 throw new Exception();
             }
-            
+
             $this->routeAction = new $this->routeExtenderPath($this);
         } catch (Exception $e) {
             $this->util->triggerError(
@@ -202,7 +202,9 @@ class Core {
                 [
                     'success' => false,
                     'error_code' => 501,
-                    'message' => 'This route has not been fully implemented. Check controller exists.'
+                    'message' => 'This route has not been fully implemented. Check controller exists.',
+                    'error_message' => $e->getMessage(),
+                    'trace_string' => $e->getTraceAsString()
                 ]
             );
         }
@@ -334,7 +336,7 @@ class Core {
     public function getRouteVariants() {
         return $this->routeVariants;
     }
-    
+
     public function getRoutePieces() {
         return $this->routePieces;
     }
@@ -352,7 +354,7 @@ class Core {
     {
         return $this->settings;
     }
-    
+
     public function changeSetting($prop, $value)
     {
         if (isset($this->settings->$prop)) {
@@ -374,48 +376,48 @@ class Core {
 
         return $this->settings->$prop;
     }
-    
+
     public function getDefaultTheme()
     {
         return $this->defaultTheme;
     }
-    
+
     public function getThemes($forceReload = false)
     {
         if (!file_exists(THEMES_DIR)) {
             error_log('You must create a "themes" folder in /html to use themes.');
             return [];
         }
-     
+
         if (!empty($this->themes) && !$forceReload) {
             return $this->themes;
         }
-        
+
         $dirs = scandir(THEMES_DIR);
-        
+
         $themeFolders = array_values(
             array_filter($dirs, function($item) {
-                return !in_array($item, ['..', '.']) 
-                        && is_dir(THEMES_DIR . $item) 
-                        && file_exists(THEMES_DIR . $item); 
+                return !in_array($item, ['..', '.'])
+                        && is_dir(THEMES_DIR . $item)
+                        && file_exists(THEMES_DIR . $item);
             })
         );
-            
+
         $paths = array_map(function($folder) {
             return THEMES_DIR . $folder . '/';
         }, $themeFolders);
-        
+
         return array_combine($themeFolders, $paths);
     }
-    
+
     public function themeExists($theme)
     {
         return isset($this->getThemes()[$theme]);
     }
-    
+
     public function getThemePath($theme, $append = '')
     {
-        return $this->themeExists($theme) 
+        return $this->themeExists($theme)
                 ? $this->getThemes()[$theme] . $append
                 : '';
     }

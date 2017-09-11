@@ -61,12 +61,7 @@ abstract class DataRouteExtender extends ExtendedRouteExtender {
 
         if (empty((array) $data)) {
             $this->rollbackDbs($qd->rollbacks);
-            Util::triggerError([
-                'success' => false,
-                'error_code' => $qd->error,
-                'message' => $qd->message,
-                'data' => $qd
-            ]);
+            $this->triggerError($qd->error, $qd->message, $qd);
         }
 
         return $data;
@@ -251,7 +246,7 @@ abstract class DataRouteExtender extends ExtendedRouteExtender {
         }
     }
 
-    protected function getSinglePropFromCollection($propName, $collection)
+    public function getSinglePropFromCollection($propName, $collection)
     {
         return (empty($collection)) ? [] : array_map(function($item) use ($propName) {
             return is_array($item) ? $item[$propName] : $item->{$propName};
